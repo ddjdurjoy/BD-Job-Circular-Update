@@ -22,6 +22,18 @@ const nextConfig: NextConfig = {
         hostname: '*.bp.blogspot.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.userlike.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
