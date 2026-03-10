@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin, Send, MessageCircle } from 'lucide-react';
-import AdminLoginModal from './AdminLoginModal';
 
 export default function Footer() {
   return (
@@ -32,7 +31,7 @@ export default function Footer() {
               <li><Link href="/privacy-policy" className="hover:text-[#006a4e] transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-[#006a4e] transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/disclaimer" className="hover:text-[#006a4e] transition-colors">Disclaimer</Link></li>
-              <li><AdminLoginModal /></li>
+              <li><Link href="/admin" className="hover:text-[#006a4e] transition-colors">Admin Generator</Link></li>
             </ul>
           </div>
 
