@@ -19,8 +19,8 @@ export async function fetchBloggerPosts(): Promise<BloggerPost[]> {
     // Use Cloudflare Worker API Proxy
     // This connects to https://bdjob.mrdurjoy.workers.dev/posts
     // Added a cache buster (?v=2) because Next.js cached the old "Hello World" response
-    const res = await fetch(`https://bdjob.mrdurjoy.workers.dev/posts?maxResults=50&v=2`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
+    const res = await fetch(`https://bdjob.mrdurjoy.workers.dev/posts?maxResults=50&v=${Date.now()}`, {
+      cache: 'no-store', // Always fetch latest
       signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     
@@ -90,8 +90,8 @@ export async function fetchBloggerPosts(): Promise<BloggerPost[]> {
 
 async function fetchFallbackJsonFeed(): Promise<BloggerPost[]> {
   try {
-    const res = await fetch('https://bdjobcircularupdateofficial.blogspot.com/feeds/posts/default?alt=json', {
-      next: { revalidate: 3600 }, // Revalidate every hour
+    const res = await fetch(`https://bdjobcircularupdateofficial.blogspot.com/feeds/posts/default?alt=json&v=${Date.now()}`, {
+      cache: 'no-store', // Always fetch latest
       signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     

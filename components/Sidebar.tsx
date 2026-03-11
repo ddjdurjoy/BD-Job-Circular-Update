@@ -54,7 +54,14 @@ export default function Sidebar({ jobs = [] }: { jobs?: Job[] }) {
           Jobs by Category
         </h3>
         <ul className="space-y-2">
-          {categories.map((cat) => (
+          {categories.map((cat) => {
+            const count = jobs.filter(j => {
+              const jobCat = j.category?.toLowerCase() || '';
+              const targetCat = cat.name.toLowerCase();
+              const labels = (j as any).categories?.map((c: string) => c.toLowerCase()) || [];
+              return jobCat === targetCat || labels.includes(targetCat);
+            }).length;
+            return (
             <li key={cat.name}>
               <Link 
                 href={`/category/${cat.name.toLowerCase().replace(' ', '-')}`}
@@ -69,11 +76,11 @@ export default function Sidebar({ jobs = [] }: { jobs?: Job[] }) {
                   </span>
                 </div>
                 <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full group-hover:bg-green-100 group-hover:text-[#006a4e] transition-colors">
-                  {cat.count}
+                  {count}
                 </span>
               </Link>
             </li>
-          ))}
+          )})}
         </ul>
       </div>
 
@@ -111,15 +118,15 @@ export default function Sidebar({ jobs = [] }: { jobs?: Job[] }) {
           Stay Connected
         </h3>
         <div className="space-y-3">
-          <a href="#" className="flex items-center gap-3 p-3 bg-[#1877F2]/10 text-[#1877F2] rounded-md hover:bg-[#1877F2] hover:text-white transition-colors font-medium">
+          <a href="https://www.facebook.com/BDJobCircularUpdateOfficial" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-[#1877F2]/10 text-[#1877F2] rounded-md hover:bg-[#1877F2] hover:text-white transition-colors font-medium">
             <Facebook size={20} />
             <span>Facebook Page</span>
           </a>
-          <a href="#" className="flex items-center gap-3 p-3 bg-[#25D366]/10 text-[#25D366] rounded-md hover:bg-[#25D366] hover:text-white transition-colors font-medium">
+          <a href="https://whatsapp.com/channel/0029VaOAa73JJhzh9wthfC3o" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-[#25D366]/10 text-[#25D366] rounded-md hover:bg-[#25D366] hover:text-white transition-colors font-medium">
             <MessageCircle size={20} />
             <span>WhatsApp Channel</span>
           </a>
-          <a href="#" className="flex items-center gap-3 p-3 bg-[#0088cc]/10 text-[#0088cc] rounded-md hover:bg-[#0088cc] hover:text-white transition-colors font-medium">
+          <a href="https://t.me/BD_Job_Circular_Update" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-[#0088cc]/10 text-[#0088cc] rounded-md hover:bg-[#0088cc] hover:text-white transition-colors font-medium">
             <Send size={20} />
             <span>Telegram Group</span>
           </a>

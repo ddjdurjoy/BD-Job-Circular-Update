@@ -7,6 +7,8 @@ import ScrollReveal from '@/components/ScrollReveal';
 import { categories } from '@/lib/data';
 import { getJobsFromBlogger } from '@/lib/blogger';
 
+export const revalidate = 0;
+
 export function generateStaticParams() {
   return categories.map((cat) => ({
     category: cat.name.toLowerCase().replace(' ', '-'),

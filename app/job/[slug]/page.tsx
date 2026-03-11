@@ -1,14 +1,18 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Facebook, MessageCircle, Send, Download, ExternalLink, Calendar, MapPin, Building2, Users, Banknote, Eye, Clock } from 'lucide-react';
+import { Download, ExternalLink, Calendar, MapPin, Building2, Users, Banknote, Clock } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Sidebar from '@/components/Sidebar';
 import JobSchema from '@/components/JobSchema';
 import ViewCounter from '@/components/ViewCounter';
 import ScrollReveal from '@/components/ScrollReveal';
+import ShareButtons from '@/components/ShareButtons';
 import { getJobsFromBlogger } from '@/lib/blogger';
+
+export const revalidate = 0;
 
 // Generate static params for all jobs
 export async function generateStaticParams() {
@@ -16,6 +20,47 @@ export async function generateStaticParams() {
   return jobs.map((job) => ({
     slug: job.slug,
   }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const jobs = await getJobsFromBlogger();
+  const job = jobs.find((j) => j.slug === slug);
+
+  if (!job) {
+    return {
+      title: 'Job Not Found',
+    };
+  }
+
+  // Strip HTML tags for description
+  const plainTextContent = job.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const description = plainTextContent.substring(0, 160) + '...';
+
+  return {
+    title: `${job.title} | BD Job Circular Update`,
+    description,
+    openGraph: {
+      title: job.title,
+      description,
+      type: 'article',
+      publishedTime: job.publishedAt,
+      images: [
+        {
+          url: job.thumbnail,
+          width: 1200,
+          height: 630,
+          alt: job.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: job.title,
+      description,
+      images: [job.thumbnail],
+    },
+  };
 }
 
 export default async function JobDetails({ params }: { params: Promise<{ slug: string }> }) {
@@ -84,19 +129,6 @@ export default async function JobDetails({ params }: { params: Promise<{ slug: s
             <ScrollReveal delay={0.1}>
               <article className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
                 
-                {/* Sticky Social Share Buttons (Desktop) */}
-                <div className="hidden md:flex flex-col gap-2 absolute left-4 top-24 z-10">
-                  <a href="#" className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md" aria-label="Share on Facebook">
-                    <Facebook size={18} />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md" aria-label="Share on WhatsApp">
-                    <MessageCircle size={18} />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md" aria-label="Share on Telegram">
-                    <Send size={18} />
-                  </a>
-                </div>
-
                 {/* Header Image */}
                 <div className="w-full h-64 sm:h-80 relative bg-gray-100 border-b border-gray-200">
                   <Image
@@ -109,7 +141,7 @@ export default async function JobDetails({ params }: { params: Promise<{ slug: s
                   />
                 </div>
 
-                <div className="p-5 sm:p-8 md:pl-20">
+                <div className="p-5 sm:p-8">
                   {/* Title */}
                   <span className="inline-block px-3 py-1 bg-green-50 text-[#006a4e] text-xs font-bold rounded-full mb-4 uppercase tracking-wider border border-green-100">
                     {job.category}
@@ -219,20 +251,10 @@ export default async function JobDetails({ params }: { params: Promise<{ slug: s
                     )}
                   </div>
 
-                  {/* Mobile Social Share */}
-                  <div className="md:hidden mt-10 pt-6 border-t border-gray-200">
+                  {/* Social Share */}
+                  <div className="mt-10 pt-6 border-t border-gray-200">
                     <p className="text-center text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Share this job</p>
-                    <div className="flex justify-center gap-4">
-                      <a href="#" className="w-12 h-12 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:opacity-90 transition-opacity shadow-md">
-                        <Facebook size={24} />
-                      </a>
-                      <a href="#" className="w-12 h-12 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-90 transition-opacity shadow-md">
-                        <MessageCircle size={24} />
-                      </a>
-                      <a href="#" className="w-12 h-12 rounded-full bg-[#0088cc] flex items-center justify-center text-white hover:opacity-90 transition-opacity shadow-md">
-                        <Send size={24} />
-                      </a>
-                    </div>
+                    <ShareButtons title={job.title} />
                   </div>
                 </div>
               </article>

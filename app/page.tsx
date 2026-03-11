@@ -7,6 +7,8 @@ import CookieConsent from '@/components/CookieConsent';
 import ScrollReveal from '@/components/ScrollReveal';
 import { getJobsFromBlogger } from '@/lib/blogger';
 
+export const revalidate = 0;
+
 export default async function Home() {
   const jobs = await getJobsFromBlogger();
 

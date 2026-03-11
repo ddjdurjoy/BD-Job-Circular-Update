@@ -14,7 +14,7 @@ const navLinks = [
   { name: 'Admit Card', href: '/category/admit-card', icon: FileText },
   { name: 'Career Guideline', href: '/category/career', icon: GraduationCap },
   { name: 'Important Notice', href: '/category/notice', icon: Info },
-  { name: 'AI Generator', href: '/admin', icon: FileText },
+  { name: 'Admin Login', href: '/admin', icon: FileText },
 ];
 
 export default function Header({ jobs = [] }: { jobs?: Job[] }) {

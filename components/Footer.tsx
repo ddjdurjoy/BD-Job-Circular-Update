@@ -31,7 +31,7 @@ export default function Footer() {
               <li><Link href="/privacy-policy" className="hover:text-[#006a4e] transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-[#006a4e] transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/disclaimer" className="hover:text-[#006a4e] transition-colors">Disclaimer</Link></li>
-              <li><Link href="/admin" className="hover:text-[#006a4e] transition-colors">Admin Generator</Link></li>
+              <li><Link href="/admin" className="hover:text-[#006a4e] transition-colors">Admin Login</Link></li>
             </ul>
           </div>
 
@@ -40,13 +40,13 @@ export default function Footer() {
             <h3 className="text-lg font-semibold text-white mb-4 border-b border-gray-700 pb-2">Connect With Us</h3>
             <p className="text-sm mb-4 text-gray-400">Join our community to get instant job updates.</p>
             <div className="flex flex-wrap gap-3">
-              <a href="#" className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="Facebook">
+              <a href="https://www.facebook.com/BDJobCircularUpdateOfficial" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#1877F2] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="WhatsApp">
+              <a href="https://whatsapp.com/channel/0029VaOAa73JJhzh9wthfC3o" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="WhatsApp">
                 <MessageCircle size={20} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="Telegram">
+              <a href="https://t.me/BD_Job_Circular_Update" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="Telegram">
                 <Send size={20} />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-[#E1306C] flex items-center justify-center text-white hover:opacity-90 transition-opacity" aria-label="Instagram">
