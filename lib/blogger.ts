@@ -18,9 +18,8 @@ export async function fetchBloggerPosts(): Promise<BloggerPost[]> {
   try {
     // Use Cloudflare Worker API Proxy
     // This connects to https://bdjob.mrdurjoy.workers.dev/posts
-    // Added a cache buster (?v=2) because Next.js cached the old "Hello World" response
-    const res = await fetch(`https://bdjob.mrdurjoy.workers.dev/posts?maxResults=50&v=${Date.now()}`, {
-      cache: 'no-store', // Always fetch latest
+    const res = await fetch(`https://bdjob.mrdurjoy.workers.dev/posts?maxResults=50`, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
       signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     
@@ -90,8 +89,8 @@ export async function fetchBloggerPosts(): Promise<BloggerPost[]> {
 
 async function fetchFallbackJsonFeed(): Promise<BloggerPost[]> {
   try {
-    const res = await fetch(`https://bdjobcircularupdateofficial.blogspot.com/feeds/posts/default?alt=json&v=${Date.now()}`, {
-      cache: 'no-store', // Always fetch latest
+    const res = await fetch(`https://bdjobcircularupdateofficial.blogspot.com/feeds/posts/default?alt=json`, {
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
       signal: AbortSignal.timeout(15000) // 15 second timeout
     });
     
@@ -154,7 +153,7 @@ async function fetchFallbackJsonFeed(): Promise<BloggerPost[]> {
     });
   } catch (error) {
     console.error('Error fetching Blogger posts from JSON feed:', error);
-    return [];
+    throw new Error('Failed to fetch job circulars from Blogger. Please check your internet connection or try again later.');
   }
 }
 
@@ -178,15 +177,38 @@ export async function getJobsFromBlogger(): Promise<Job[]> {
     
     // Look for common PDF link patterns in the HTML content
     // 1. Look for links ending in .pdf
-    const pdfMatch = post.content.match(/href="([^"]+\.pdf)"/i);
+    const pdfMatch = post.content.match(/href=["']([^"']+\.pdf)["']/i);
     if (pdfMatch && pdfMatch[1]) {
       pdfLink = pdfMatch[1];
     } 
     // 2. Look for Google Drive links which are often used for PDFs
     else if (!pdfLink) {
-      const driveMatch = post.content.match(/href="(https:\/\/drive\.google\.com\/file\/d\/[^/]+\/view[^"]*)"/i);
+      const driveMatch = post.content.match(/href=["'](https:\/\/drive\.google\.com\/file\/d\/[^/]+\/view[^"']*)["']/i);
       if (driveMatch && driveMatch[1]) {
         pdfLink = driveMatch[1];
+      }
+    }
+    
+    // Try to extract an apply link
+    let applyLink = undefined;
+    
+    // Look for teletalk links (standard BD govt job portal)
+    const teletalkMatch = post.content.match(/href=["'](https?:\/\/[a-zA-Z0-9.-]+\.teletalk\.com\.bd[^"']*)["']/i);
+    if (teletalkMatch && teletalkMatch[1]) {
+      applyLink = teletalkMatch[1];
+    } else {
+      // Look for links with text containing "Apply", "আবেদন", "Click Here"
+      const applyTextMatch = post.content.match(/<a[^>]+href=["']([^"']+)["'][^>]*>(?:[^<]*)(?:Apply|apply|আবেদন|Click Here)(?:[^<]*)<\/a>/i);
+      if (applyTextMatch && applyTextMatch[1]) {
+        applyLink = applyTextMatch[1];
+      }
+    }
+
+    // Fallback: Find any external link that isn't a PDF, image, or the blogger site itself
+    if (!applyLink) {
+      const externalLinkMatch = post.content.match(/<a[^>]+href=["'](https?:\/\/(?!drive\.google\.com|[^"']+\.(?:pdf|jpg|jpeg|png|gif|svg))[^"']+)["'][^>]*>/i);
+      if (externalLinkMatch && externalLinkMatch[1] && !externalLinkMatch[1].includes('bdjobcircularupdateofficial.blogspot.com')) {
+        applyLink = externalLinkMatch[1];
       }
     }
     
@@ -206,7 +228,7 @@ export async function getJobsFromBlogger(): Promise<Job[]> {
       viewCount: Math.floor(Math.random() * 10000) + 1000, // Fake view count
       featured: index < 3, // Make first 3 featured
       content: post.content,
-      applyLink: post.url, // Link back to original post
+      applyLink: applyLink, // Extracted apply link or original post
       pdfLink: pdfLink, // Extracted PDF link
     };
   });

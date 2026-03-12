@@ -5,22 +5,25 @@ import { useState, useEffect } from 'react';
 
 export default function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
-  const [url, setUrl] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setUrl(window.location.href);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
+  if (!mounted) return null;
+
+  const url = typeof window !== 'undefined' ? window.location.href : '';
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
   const handleCopy = () => {
+    if (!url) return;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  if (!url) return null;
 
   return (
     <div className="flex flex-wrap justify-center gap-4">

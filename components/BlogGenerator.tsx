@@ -23,6 +23,7 @@ export default function BlogGenerator() {
   const [error, setError] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
+  const [autoPostTelegram, setAutoPostTelegram] = useState(true);
   const [bloggerToken, setBloggerToken] = useState('');
 
   useEffect(() => {
@@ -47,38 +48,44 @@ export default function BlogGenerator() {
 
     setIsPublishing(true);
     try {
-      // The Blog ID from lib/blogger.ts
       const BLOG_ID = '581318446510932811';
       
-      const payload: any = {
-        kind: 'blogger#post',
-        blog: { id: BLOG_ID },
-        title: metadata.title,
-        content: metadata.htmlContent,
-      };
-      
       const labels = metadata.labels ? metadata.labels.split(',').map(l => l.trim()).filter(Boolean) : [];
-      if (labels.length > 0) {
-        payload.labels = labels;
-      }
 
-      const response = await fetch(`https://www.googleapis.com/blogger/v3/blogs/${BLOG_ID}/posts`, {
+      const response = await fetch('/api/publish', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${tokenToUse}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          token: tokenToUse,
+          blogId: BLOG_ID,
+          title: metadata.title,
+          content: metadata.htmlContent,
+          labels: labels,
+          autoPostTelegram: autoPostTelegram,
+          telegramPost: metadata.telegramPost,
+          thumbnailUrl: metadata.thumbnailUrl
+        })
       });
       
+      const responseData = await response.json();
+
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem('blogger_access_token');
           setBloggerToken('');
           throw new Error('Token expired or invalid. Please provide a new token.');
         }
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to publish to Blogger');
+        throw new Error(responseData.error || 'Failed to publish to Blogger');
+      }
+      
+      if (autoPostTelegram) {
+        if (responseData.telegram?.success) {
+          alert('Successfully published to Blogger AND posted to Telegram!');
+        } else {
+          alert(`Published to Blogger, but Telegram post failed: ${responseData.telegram?.error || 'Unknown error'}`);
+        }
       }
       
       setPublishSuccess(true);
@@ -120,7 +127,25 @@ Search Google Images specifically for the official job circular image or a highl
 If you absolutely cannot find an official circular image URL, use this placeholder: "https://placehold.co/800x400/006a4e/ffffff?text=Job+Circular"
 
 TASK 2: SOCIAL MEDIA POSTS
-Generate engaging, emoji-rich posts for Telegram, Facebook, and WhatsApp to promote this job. Keep them concise, highlight the deadline, and include a placeholder for the website link like "[Website Link]".
+Generate engaging posts for Facebook and WhatsApp.
+For Telegram, you MUST use EXACTLY this format (replace the bracketed info with the actual job details, keep the links exactly as shown below for the community/follow sections):
+
+📝 [Job Title]
+Job Type: [Category/Type]
+Application Start: [Start Date]
+Deadline: [Deadline Date]
+📄 Circular Details: View PDF ([PDF Link if available, otherwise Website Link])
+💻 Apply Online: Click Here ([Apply Link])
+
+🔗 Join Our Community
+Telegram Group: Join Now (https://t.me/Job_Circular_BD)
+WhatsApp Channel: Stay Updated (https://whatsapp.com/channel/0029VaOAa73JJhzh9wthfC3o)
+
+🌐 Follow Us for More Updates
+Website: Visit Here (https://bdjobcircularupdateofficial.vercel.app/)
+Facebook Page: Like & Follow (https://www.facebook.com/BDJobCircularUpdateOfficial)
+Facebook Group: Join Now (https://www.facebook.com/share/YrWcLjctNimuRnqp/)
+@BD_Job_Circular_Update 🚀
 `;
 
       const response = await ai.models.generateContent({
@@ -164,71 +189,80 @@ Generate engaging, emoji-rich posts for Telegram, Facebook, and WhatsApp to prom
 
       const generatedHtmlContent = `
 <style>
-:root{--primary-color:#006a4e;--accent-color:#f42a41;--text-color:#333;--bg-light:#f8f9fa}
-body{font-family:'SolaimanLipi',Arial,sans-serif;color:var(--text-color);line-height:1.6;margin:0;padding:0;}
-.post-container{max-width:100%;margin:0 auto;padding:15px;background:#fff;box-sizing:border-box;}
-h1.post-title{color:var(--primary-color);font-size:24px;text-align:center;border-bottom:3px solid var(--accent-color);padding-bottom:10px;margin-bottom:20px;line-height:1.4;}
-h2.section-title{color:var(--primary-color);font-size:20px;border-left:4px solid var(--accent-color);padding-left:10px;margin-top:25px;margin-bottom:15px;background:var(--bg-light);padding:8px 10px;border-radius:0 5px 5px 0;}
-.intro-text{font-size:16px;margin-bottom:20px;text-align:justify;}
-.job-summary-card{background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.05);overflow:hidden;margin-bottom:30px;}
-.job-summary-header{background:var(--primary-color);color:#fff;padding:12px;text-align:center;font-size:18px;font-weight:bold;}
-.table-responsive{overflow-x:auto;}
-.job-summary-table{width:100%;border-collapse:collapse;min-width:300px;}
-.job-summary-table th,.job-summary-table td{padding:10px 12px;border-bottom:1px solid #eee;text-align:left;font-size:15px;}
-.job-summary-table th{background-color:var(--bg-light);width:40%;color:var(--primary-color);}
-.job-summary-table tr:last-child th,.job-summary-table tr:last-child td{border-bottom:none;}
-.job-summary-table tr:nth-child(even) td{background-color:#fafafa;}
-.circular-image{text-align:center;margin:25px 0;}
-.circular-image img{max-width:100%;height:auto;box-shadow:0 4px 8px rgba(0,0,0,.1);border-radius:8px;border:2px solid var(--primary-color);}
-.requirements-list{list-style-type:none;padding:0;}
-.requirements-list li{position:relative;padding-left:25px;margin-bottom:10px;font-size:15px;}
-.requirements-list li::before{content:'✓';position:absolute;left:0;top:0;color:var(--accent-color);font-weight:bold;font-size:16px;}
-.apply-steps{background:var(--bg-light);padding:15px;border-radius:8px;border-left:4px solid var(--primary-color);font-size:15px;}
-.apply-steps ol{margin:0;padding-left:20px;}
-.apply-steps li{margin-bottom:8px;}
+.blogger-post-wrapper {
+  --primary-color: #006a4e;
+  --accent-color: #f42a41;
+  --text-color: #333;
+  --bg-light: #f8f9fa;
+  font-family: 'SolaimanLipi', Arial, sans-serif;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+.blogger-post-wrapper .post-container { max-width: 100%; margin: 0 auto; padding: 15px; background: #fff; box-sizing: border-box; }
+.blogger-post-wrapper h1.post-title { color: var(--primary-color); font-size: 24px; text-align: center; border-bottom: 3px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 20px; line-height: 1.4; }
+.blogger-post-wrapper h2.section-title { color: var(--primary-color); font-size: 20px; border-left: 4px solid var(--accent-color); padding-left: 10px; margin-top: 25px; margin-bottom: 15px; background: var(--bg-light); padding: 8px 10px; border-radius: 0 5px 5px 0; }
+.blogger-post-wrapper .intro-text { font-size: 16px; margin-bottom: 20px; text-align: justify; }
+.blogger-post-wrapper .job-summary-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,.05); overflow: hidden; margin-bottom: 30px; }
+.blogger-post-wrapper .job-summary-header { background: var(--primary-color); color: #fff; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; }
+.blogger-post-wrapper .table-responsive { overflow-x: auto; }
+.blogger-post-wrapper .job-summary-table { width: 100%; border-collapse: collapse; min-width: 300px; }
+.blogger-post-wrapper .job-summary-table th, .blogger-post-wrapper .job-summary-table td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left; font-size: 15px; }
+.blogger-post-wrapper .job-summary-table th { background-color: var(--bg-light); width: 40%; color: var(--primary-color); }
+.blogger-post-wrapper .job-summary-table tr:last-child th, .blogger-post-wrapper .job-summary-table tr:last-child td { border-bottom: none; }
+.blogger-post-wrapper .job-summary-table tr:nth-child(even) td { background-color: #fafafa; }
+.blogger-post-wrapper .circular-image { text-align: center; margin: 25px 0; }
+.blogger-post-wrapper .circular-image img { max-width: 100%; height: auto; box-shadow: 0 4px 8px rgba(0,0,0,.1); border-radius: 8px; border: 2px solid var(--primary-color); }
+.blogger-post-wrapper .requirements-list { list-style-type: none; padding: 0; }
+.blogger-post-wrapper .requirements-list li { position: relative; padding-left: 25px; margin-bottom: 10px; font-size: 15px; }
+.blogger-post-wrapper .requirements-list li::before { content: '✓'; position: absolute; left: 0; top: 0; color: var(--accent-color); font-weight: bold; font-size: 16px; }
+.blogger-post-wrapper .apply-steps { background: var(--bg-light); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary-color); font-size: 15px; }
+.blogger-post-wrapper .apply-steps ol { margin: 0; padding-left: 20px; }
+.blogger-post-wrapper .apply-steps li { margin-bottom: 8px; }
 @media (max-width: 480px) {
-  h1.post-title{font-size:20px;}
-  h2.section-title{font-size:18px;}
-  .job-summary-table th,.job-summary-table td{padding:8px;font-size:14px;}
-  .job-summary-table th{width:45%;}
+  .blogger-post-wrapper h1.post-title { font-size: 20px; }
+  .blogger-post-wrapper h2.section-title { font-size: 18px; }
+  .blogger-post-wrapper .job-summary-table th, .blogger-post-wrapper .job-summary-table td { padding: 8px; font-size: 14px; }
+  .blogger-post-wrapper .job-summary-table th { width: 45%; }
 }
 </style>
-<div class='post-container'>
-  <h1 class='post-title'>${data.title || ''}</h1>
-  <p class='intro-text'>${data.introParagraph || ''}</p>
-  
-  <h2 class='section-title'>এক নজরে নিয়োগ বিজ্ঞপ্তি (Job Summary)</h2>
-  <div class='job-summary-card'>
-    <div class='job-summary-header'>${data.title || 'Job Circular'}</div>
-    <div class='table-responsive'>
-      <table class='job-summary-table'>
-        <tbody>
-          <tr><th>প্রতিষ্ঠানের নাম</th><td>${data.organization || ''}</td></tr>
-          <tr><th>পদের নাম</th><td>${data.vacancy || ''}</td></tr>
-          <tr><th>শিক্ষাগত যোগ্যতা</th><td>${data.requirements?.[0] || ''}</td></tr>
-          <tr><th>বেতন</th><td>${data.salary || ''}</td></tr>
-          <tr><th>আবেদন শুরুর তারিখ</th><td>${data.publishedDate || ''}</td></tr>
-          <tr><th>আবেদনের শেষ তারিখ</th><td>${data.deadline || ''}</td></tr>
-          <tr><th>অফিসিয়াল ওয়েবসাইট</th><td>${data.applyLink || ''}</td></tr>
-        </tbody>
-      </table>
+<div class='blogger-post-wrapper'>
+  <div class='post-container'>
+    <h1 class='post-title'>\${data.title || ''}</h1>
+    <p class='intro-text'>\${data.introParagraph || ''}</p>
+    
+    <h2 class='section-title'>এক নজরে নিয়োগ বিজ্ঞপ্তি (Job Summary)</h2>
+    <div class='job-summary-card'>
+      <div class='job-summary-header'>\${data.title || 'Job Circular'}</div>
+      <div class='table-responsive'>
+        <table class='job-summary-table'>
+          <tbody>
+            <tr><th>প্রতিষ্ঠানের নাম</th><td>\${data.organization || ''}</td></tr>
+            <tr><th>পদের নাম</th><td>\${data.vacancy || ''}</td></tr>
+            <tr><th>শিক্ষাগত যোগ্যতা</th><td>\${data.requirements?.[0] || ''}</td></tr>
+            <tr><th>বেতন</th><td>\${data.salary || ''}</td></tr>
+            <tr><th>আবেদন শুরুর তারিখ</th><td>\${data.publishedDate || ''}</td></tr>
+            <tr><th>আবেদনের শেষ তারিখ</th><td>\${data.deadline || ''}</td></tr>
+            <tr><th>অফিসিয়াল ওয়েবসাইট</th><td><a href="\${data.applyLink || '#'}" target="_blank">\${data.applyLink || ''}</a></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <h2 class='section-title'>শিক্ষাগত যোগ্যতা ও অন্যান্য শর্তাবলী (Requirements)</h2>
-  <ul class='requirements-list'>
-    ${(data.requirements || []).map((req: string) => `<li>${req}</li>`).join('\n    ')}
-  </ul>
+    <h2 class='section-title'>শিক্ষাগত যোগ্যতা ও অন্যান্য শর্তাবলী (Requirements)</h2>
+    <ul class='requirements-list'>
+      \${(data.requirements || []).map((req: string) => \`<li>\${req}</li>\`).join('\\n      ')}
+    </ul>
 
-  <h2 class='section-title'>অফিসিয়াল নোটিশ (Official Circular Image)</h2>
-  <p class='intro-text'>নিচে সাম্প্রতিক নিয়োগ বিজ্ঞপ্তির অফিসিয়াল ছবি দেওয়া হলো। বিস্তারিত তথ্যের জন্য নোটিশটি ভালোভাবে পড়ে নিন:</p>
-  <div class='circular-image'>
-    <img src='${data.thumbnailUrl || 'https://placehold.co/800x400/006a4e/ffffff?text=Job+Circular'}' alt='${data.title || 'Job Circular'} Official Notice'>
-  </div>
+    <h2 class='section-title'>অফিসিয়াল নোটিশ (Official Circular Image)</h2>
+    <p class='intro-text'>নিচে সাম্প্রতিক নিয়োগ বিজ্ঞপ্তির অফিসিয়াল ছবি দেওয়া হলো। বিস্তারিত তথ্যের জন্য নোটিশটি ভালোভাবে পড়ে নিন:</p>
+    <div class='circular-image'>
+      <img src='\${data.thumbnailUrl || 'https://placehold.co/800x400/006a4e/ffffff?text=Job+Circular'}' alt='\${data.title || 'Job Circular'} Official Notice'>
+    </div>
 
-  <h2 class='section-title'>কিভাবে আবেদন করবেন? (How to Apply)</h2>
-  <div class='apply-steps'>
-    ${data.howToApply || ''}
+    <h2 class='section-title'>কিভাবে আবেদন করবেন? (How to Apply)</h2>
+    <div class='apply-steps'>
+      \${data.howToApply || ''}
+    </div>
   </div>
 </div>
 `;
@@ -357,6 +391,19 @@ h2.section-title{color:var(--primary-color);font-size:20px;border-left:4px solid
                   </div>
                 </div>
                 
+                <div className="mb-4 bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    id="autoPostTelegram" 
+                    checked={autoPostTelegram} 
+                    onChange={(e) => setAutoPostTelegram(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <label htmlFor="autoPostTelegram" className="text-sm font-medium text-blue-800 cursor-pointer">
+                    Auto-post to Telegram Channel when publishing
+                  </label>
+                </div>
+
                 <div className="grid grid-cols-1 gap-4">
                 {/* Title */}
                 <div className="col-span-1 md:col-span-2">
@@ -459,56 +506,56 @@ h2.section-title{color:var(--primary-color);font-size:20px;border-left:4px solid
                 </div>
               </div>
             </div>
-          </div>
+            </div>
 
-          {/* Right Column: Social Media Posts */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Social Media Posts</h2>
-              
-              <div className="space-y-6">
-                {/* Telegram */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#0088cc] mb-1 flex items-center gap-2">
-                    <Send size={16} /> Telegram Channel
-                  </label>
-                  <div className="relative">
-                    <textarea readOnly value={metadata.telegramPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
-                    <button onClick={() => handleCopy(metadata.telegramPost, 'telegram')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
-                      {copiedField === 'telegram' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                    </button>
+            {/* Right Column: Social Media Posts */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Social Media Posts</h2>
+                
+                <div className="space-y-6">
+                  {/* Telegram */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#0088cc] mb-1 flex items-center gap-2">
+                      <Send size={16} /> Telegram Channel
+                    </label>
+                    <div className="relative">
+                      <textarea readOnly value={metadata.telegramPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
+                      <button onClick={() => handleCopy(metadata.telegramPost, 'telegram')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
+                        {copiedField === 'telegram' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Facebook */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#1877F2] mb-1 flex items-center gap-2">
-                    <Facebook size={16} /> Facebook Page
-                  </label>
-                  <div className="relative">
-                    <textarea readOnly value={metadata.facebookPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
-                    <button onClick={() => handleCopy(metadata.facebookPost, 'facebook')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
-                      {copiedField === 'facebook' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                    </button>
+                  {/* Facebook */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#1877F2] mb-1 flex items-center gap-2">
+                      <Facebook size={16} /> Facebook Page
+                    </label>
+                    <div className="relative">
+                      <textarea readOnly value={metadata.facebookPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
+                      <button onClick={() => handleCopy(metadata.facebookPost, 'facebook')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
+                        {copiedField === 'facebook' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* WhatsApp */}
-                <div>
-                  <label className="block text-sm font-semibold text-[#25D366] mb-1 flex items-center gap-2">
-                    <MessageCircle size={16} /> WhatsApp Channel
-                  </label>
-                  <div className="relative">
-                    <textarea readOnly value={metadata.whatsappPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
-                    <button onClick={() => handleCopy(metadata.whatsappPost, 'whatsapp')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
-                      {copiedField === 'whatsapp' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                    </button>
+                  {/* WhatsApp */}
+                  <div>
+                    <label className="block text-sm font-semibold text-[#25D366] mb-1 flex items-center gap-2">
+                      <MessageCircle size={16} /> WhatsApp Channel
+                    </label>
+                    <div className="relative">
+                      <textarea readOnly value={metadata.whatsappPost} rows={5} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 resize-none pr-12" />
+                      <button onClick={() => handleCopy(metadata.whatsappPost, 'whatsapp')} className="absolute top-2 right-2 p-2 bg-white hover:bg-gray-100 text-gray-700 rounded-md transition-colors border border-gray-200 shadow-sm">
+                        {copiedField === 'whatsapp' ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
         )}
       </div>
     </div>

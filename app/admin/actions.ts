@@ -3,13 +3,14 @@
 import { cookies } from 'next/headers';
 
 export async function login(password: string) {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Ddjdurjoy3@bjcu';
   
   if (password === adminPassword) {
     const cookieStore = await cookies();
     cookieStore.set('admin_session', 'true', { 
       httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
+      secure: true,
+      sameSite: 'none',
       path: '/',
       maxAge: 60 * 60 * 24 // 1 day
     });
